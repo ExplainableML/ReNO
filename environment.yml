@@ -1,0 +1,24 @@
+name: reno
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pytorch=2.3
+  - torchvision=0.18.0
+  - pytorch-cuda
+  - pytorch-lightning=2.2
+  - pip
+  - pip:
+    - datasets==2.18
+    - transformers==4.38.2
+    - diffusers==0.28
+    - hpsv2==1.2
+    - image-reward==1.5
+    - open-clip-torch==2.24
+    - bloblfile
+    - openai-clip
+    - setuptools==60.2
+    - optimum
+    - xformers

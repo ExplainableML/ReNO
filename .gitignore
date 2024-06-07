@@ -1,0 +1,7 @@
+/data
+/outputs
+/seg_outputs
+/ckpts
+/weight
+
+__pycache__
