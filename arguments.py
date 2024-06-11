@@ -38,36 +38,36 @@ def parse_args():
     parser.add_argument("--seed", type=int, help="Seed to use", default=0)
 
     # reward losses
-    parser.add_argument("--enable_hps", default=True, action="store_false")
+    parser.add_argument("--disable_hps", default=True, action="store_false",dest="enable_hps")
     parser.add_argument(
         "--hps_weighting", type=float, help="Weighting for HPS", default=5.0
     )
-    parser.add_argument("--enable_imagereward", default=True, action="store_false")
+    parser.add_argument("--disable_imagereward", default=True, action="store_false",dest='enable_imagereward')
     parser.add_argument(
         "--imagereward_weighting",
         type=float,
         help="Weighting for ImageReward",
         default=1.0,
     )
-    parser.add_argument("--enable_clip", default=False, action="store_false")
+    parser.add_argument("--disable_clip", default=True, action="store_false",dest='enable_clip')
     parser.add_argument(
         "--clip_weighting", type=float, help="Weighting for CLIP", default=0.01
     )
-    parser.add_argument("--enable_pickscore", default=True, action="store_false")
+    parser.add_argument("--disable_pickscore", default=True, action="store_false",dest='enable_pickscore')
     parser.add_argument(
         "--pickscore_weighting",
         type=float,
         help="Weighting for PickScore",
         default=0.05,
     )
-    parser.add_argument("--enable_aesthetic", default=False, action="store_false")
+    parser.add_argument("--disable_aesthetic", default=False, action="store_false",dest='enable_aesthetic')
     parser.add_argument(
         "--aesthetic_weighting",
         type=float,
         help="Weighting for Aesthetic",
         default=0.0,
     )
-    parser.add_argument("--enable_reg", default=True, action="store_false")
+    parser.add_argument("--disable_reg", default=True, action="store_false",dest='enable_reg')
     parser.add_argument(
         "--reg_weight", type=float, help="Regularization weight", default=0.01
     )
