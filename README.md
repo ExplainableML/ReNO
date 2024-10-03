@@ -63,8 +63,8 @@ For the Parti-Prompts leave one reward out experiments, the leave one out reward
 @article{eyring2024reno,
   title={ReNO: Enhancing One-step Text-to-Image Models through Reward-based Noise Optimization}, 
   author={Luca Eyring and Shyamgopal Karthik and Karsten Roth and Alexey Dosovitskiy and Zeynep Akata},
-  year={2024},
-  eprint={2406.04312},
-  archivePrefix={arXiv},
+  journal={Neural Information Processing Systems (NeurIPS)},
+  year={2024}
+}
 }
 ```
