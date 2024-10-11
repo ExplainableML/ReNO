@@ -66,5 +66,4 @@ For the Parti-Prompts leave one reward out experiments, the leave one out reward
   journal={Neural Information Processing Systems (NeurIPS)},
   year={2024}
 }
-}
 ```
