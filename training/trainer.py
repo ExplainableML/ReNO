@@ -83,10 +83,13 @@ class LatentNoiseTrainer:
                     generator=generator,
                     num_inference_steps=self.n_inference_steps,
                 )
-            if initial_image is None and multi_apply_fn is not None:
-                multi_step_image = multi_apply_fn(latents.detach(), prompt)
+            if initial_image is None:
+                if multi_apply_fn is not None:
+                    initial_image = multi_apply_fn(latents.detach(), prompt)
+                else:
+                    initial_image = image
                 image_numpy = (
-                    multi_step_image.detach().cpu().permute(0, 2, 3, 1).float().numpy()
+                    initial_image.detach().cpu().permute(0, 2, 3, 1).float().numpy()
                 )
                 initial_image = DiffusionPipeline.numpy_to_pil(image_numpy)[0]
             if self.no_optim:
