@@ -9,7 +9,7 @@ from pytorch_lightning import seed_everything
 from tqdm import tqdm
 
 from arguments import parse_args
-from models import get_model
+from models import get_model, get_multi_apply_fn
 from rewards import get_reward_losses
 from training import LatentNoiseTrainer, get_optimizer
 
@@ -43,21 +43,22 @@ def main(args):
     if args.device_id is not None:
         logging.info(f"Using CUDA device {args.device_id}")
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICE"] = args.device_id
-    if args.device == "cuda":
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
-    # Set dtype to fp16
-    dtype = torch.float16
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.device_id
+    device = torch.device("cuda")
+    if args.dtype == "float32":
+        dtype = torch.float32
+    elif args.dtype == "float16":
+        dtype = torch.float16
     # Get reward losses
     reward_losses = get_reward_losses(args, dtype, device, args.cache_dir)
 
     # Get model and noise trainer
-    sd_model = get_model(args.model, dtype, device, args.cache_dir, args.memsave)
+    pipe = get_model(
+        args.model, dtype, device, args.cache_dir, args.memsave, args.cpu_offloading
+    )
     trainer = LatentNoiseTrainer(
         reward_losses=reward_losses,
-        model=sd_model,
+        model=pipe,
         n_iters=args.n_iters,
         n_inference_steps=args.n_inference_steps,
         seed=args.seed,
@@ -72,36 +73,51 @@ def main(args):
     )
 
     # Create latents
-    if args.model != "pixart":
-        height = sd_model.unet.config.sample_size * sd_model.vae_scale_factor
-        width = sd_model.unet.config.sample_size * sd_model.vae_scale_factor
+    if args.model == "flux":
+        # currently only support 512x512 generation
+        shape = (1, 16 * 64, 64)
+    elif args.model != "pixart":
+        height = pipe.unet.config.sample_size * pipe.vae_scale_factor
+        width = pipe.unet.config.sample_size * pipe.vae_scale_factor
         shape = (
             1,
-            sd_model.unet.in_channels,
-            height // sd_model.vae_scale_factor,
-            width // sd_model.vae_scale_factor,
+            pipe.unet.in_channels,
+            height // pipe.vae_scale_factor,
+            width // pipe.vae_scale_factor,
         )
     else:
-        height = sd_model.transformer.config.sample_size * sd_model.vae_scale_factor
-        width = sd_model.transformer.config.sample_size * sd_model.vae_scale_factor
+        height = pipe.transformer.config.sample_size * pipe.vae_scale_factor
+        width = pipe.transformer.config.sample_size * pipe.vae_scale_factor
         shape = (
             1,
-            sd_model.transformer.config.in_channels,
-            height // sd_model.vae_scale_factor,
-            width // sd_model.vae_scale_factor,
+            pipe.transformer.config.in_channels,
+            height // pipe.vae_scale_factor,
+            width // pipe.vae_scale_factor,
         )
     enable_grad = not args.no_optim
+    if args.enable_multi_apply:
+        multi_apply_fn = get_multi_apply_fn(
+            model_type=args.multi_step_model,
+            seed=args.seed,
+            pipe=pipe,
+            cache_dir=args.cache_dir,
+            device=device,
+            dtype=dtype,
+        )
+    else:
+        multi_apply_fn = None
 
     if args.task == "single":
         init_latents = torch.randn(shape, device=device, dtype=dtype)
         latents = torch.nn.Parameter(init_latents, requires_grad=enable_grad)
         optimizer = get_optimizer(args.optim, latents, args.lr, args.nesterov)
-        save_dir = f"{args.save_dir}/{args.task}/{settings}/{args.prompt}"
+        save_dir = f"{args.save_dir}/{args.task}/{settings}/{args.prompt[:150]}"
         os.makedirs(f"{save_dir}", exist_ok=True)
-        best_image, total_init_rewards, total_best_rewards = trainer.train(
-            latents, args.prompt, optimizer, save_dir
+        init_image, best_image, total_init_rewards, total_best_rewards = trainer.train(
+            latents, args.prompt, optimizer, save_dir, multi_apply_fn
         )
         best_image.save(f"{save_dir}/best_image.png")
+        init_image.save(f"{save_dir}/init_image.png")
     elif args.task == "example-prompts":
         fo = open("assets/example_prompts.txt", "r")
         prompts = fo.readlines()
@@ -113,11 +129,11 @@ def main(args):
             optimizer = get_optimizer(args.optim, latents, args.lr, args.nesterov)
 
             prompt = prompt.strip()
-            name = f"{i:03d}_{prompt}.png"
+            name = f"{i:03d}_{prompt[:150]}.png"
             save_dir = f"{args.save_dir}/{args.task}/{settings}/{name}"
             os.makedirs(save_dir, exist_ok=True)
-            best_image, init_rewards, best_rewards = trainer.train(
-                latents, prompt, optimizer, save_dir
+            init_image, best_image, init_rewards, best_rewards = trainer.train(
+                latents, prompt, optimizer, save_dir, multi_apply_fn
             )
             if i == 0:
                 total_best_rewards = {k: 0.0 for k in best_rewards.keys()}
@@ -126,6 +142,7 @@ def main(args):
                 total_best_rewards[k] += best_rewards[k]
                 total_init_rewards[k] += init_rewards[k]
             best_image.save(f"{save_dir}/best_image.png")
+            init_image.save(f"{save_dir}/init_image.png")
             logging.info(f"Initial rewards: {init_rewards}")
             logging.info(f"Best rewards: {best_rewards}")
         for k in total_best_rewards.keys():
@@ -151,8 +168,8 @@ def main(args):
             optimizer = get_optimizer(args.optim, latents, args.lr, args.nesterov)
 
             prompt = prompt.strip()
-            best_image, init_rewards, best_rewards = trainer.train(
-                latents, prompt, optimizer
+            init_image, best_image, init_rewards, best_rewards = trainer.train(
+                latents, prompt, optimizer, None, multi_apply_fn
             )
             if i == 0:
                 total_best_rewards = {k: 0.0 for k in best_rewards.keys()}
@@ -178,8 +195,8 @@ def main(args):
                 f"{args.save_dir}/{args.task}/{settings}/{index}", exist_ok=True
             )
             prompt = sample["Prompt"]
-            best_image, init_rewards, best_rewards = trainer.train(
-                latents, prompt, optimizer
+            init_image, best_image, init_rewards, best_rewards = trainer.train(
+                latents, prompt, optimizer, multi_apply_fn
             )
             best_image.save(
                 f"{args.save_dir}/{args.task}/{settings}/{index}/best_image.png"
@@ -244,8 +261,8 @@ def main(args):
             optimizer = get_optimizer(args.optim, latents, args.lr, args.nesterov)
 
             prompt = metadata["prompt"]
-            best_image, init_rewards, best_rewards = trainer.train(
-                latents, prompt, optimizer
+            init_image, best_image, init_rewards, best_rewards = trainer.train(
+                latents, prompt, optimizer, None, multi_apply_fn
             )
             logging.info(f"Initial rewards: {init_rewards}")
             logging.info(f"Best rewards: {best_rewards}")
@@ -268,7 +285,8 @@ def main(args):
     # log total rewards
     logging.info(f"Mean initial rewards: {total_init_rewards}")
     logging.info(f"Mean best rewards: {total_best_rewards}")
-    
+
+
 if __name__ == "__main__":
     args = parse_args()
     main(args)

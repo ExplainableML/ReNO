@@ -1,1 +1,1 @@
-from .utils import get_model
+from .utils import get_model, get_multi_apply_fn

@@ -1,14 +1,18 @@
 from typing import List, Optional, Union
 
 import torch
-from diffusers import (AutoencoderKL, StableDiffusionXLPipeline,
-                       UNet2DConditionModel)
-from diffusers.pipelines.stable_diffusion_xl.pipeline_stable_diffusion_xl import \
-    retrieve_timesteps
+from diffusers import AutoencoderKL, StableDiffusionXLPipeline, UNet2DConditionModel
+from diffusers.pipelines.stable_diffusion_xl.pipeline_stable_diffusion_xl import (
+    retrieve_timesteps,
+)
 from diffusers.schedulers import KarrasDiffusionSchedulers
-from transformers import (CLIPImageProcessor, CLIPTextModel,
-                          CLIPTextModelWithProjection, CLIPTokenizer,
-                          CLIPVisionModelWithProjection)
+from transformers import (
+    CLIPImageProcessor,
+    CLIPTextModel,
+    CLIPTextModelWithProjection,
+    CLIPTokenizer,
+    CLIPVisionModelWithProjection,
+)
 
 
 def freeze_params(params):

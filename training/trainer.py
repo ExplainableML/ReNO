@@ -51,12 +51,15 @@ class LatentNoiseTrainer:
         prompt: str,
         optimizer: torch.optim.Optimizer,
         save_dir: Optional[str] = None,
+        multi_apply_fn=None,
     ) -> Tuple[PIL.Image.Image, Dict[str, float], Dict[str, float]]:
         logging.info(f"Optimizing latents for prompt '{prompt}'.")
         best_loss = torch.inf
         best_image = None
+        initial_image = None
         initial_rewards = None
         best_rewards = None
+        best_latents = None
         latent_dim = math.prod(latents.shape[1:])
         for iteration in range(self.n_iters):
             to_log = ""
@@ -75,11 +78,17 @@ class LatentNoiseTrainer:
                 )
             else:
                 image = self.model.apply(
-                    latents,
-                    prompt,
+                    latents=latents,
+                    prompt=prompt,
                     generator=generator,
                     num_inference_steps=self.n_inference_steps,
                 )
+            if initial_image is None and multi_apply_fn is not None:
+                multi_step_image = multi_apply_fn(latents.detach(), prompt)
+                image_numpy = (
+                    multi_step_image.detach().cpu().permute(0, 2, 3, 1).float().numpy()
+                )
+                initial_image = DiffusionPipeline.numpy_to_pil(image_numpy)[0]
             if self.no_optim:
                 best_image = image
                 break
@@ -106,12 +115,11 @@ class LatentNoiseTrainer:
                 total_loss += regularization.to(total_loss.dtype)
             if self.log_metrics:
                 logging.info(f"Iteration {iteration}: {to_log}")
-            if initial_rewards is None:
-                initial_rewards = rewards
             if total_reward_loss < best_loss:
                 best_loss = total_reward_loss
                 best_image = image
                 best_rewards = rewards
+                best_latents = latents.detach().cpu()
             if iteration != self.n_iters - 1 and not self.imageselect:
                 total_loss.backward()
                 torch.nn.utils.clip_grad_norm_(latents, self.grad_clip)
@@ -120,6 +128,14 @@ class LatentNoiseTrainer:
                 image_numpy = image.detach().cpu().permute(0, 2, 3, 1).float().numpy()
                 image_pil = DiffusionPipeline.numpy_to_pil(image_numpy)[0]
                 image_pil.save(f"{save_dir}/{iteration}.png")
+            if initial_rewards is None:
+                initial_rewards = rewards
         image_numpy = best_image.detach().cpu().permute(0, 2, 3, 1).float().numpy()
-        image_pil = DiffusionPipeline.numpy_to_pil(image_numpy)[0]
-        return image_pil, initial_rewards, best_rewards
+        best_image_pil = DiffusionPipeline.numpy_to_pil(image_numpy)[0]
+        if multi_apply_fn is not None:
+            multi_step_image = multi_apply_fn(best_latents.to("cuda"), prompt)
+            image_numpy = (
+                multi_step_image.detach().cpu().permute(0, 2, 3, 1).float().numpy()
+            )
+            best_image_pil = DiffusionPipeline.numpy_to_pil(image_numpy)[0]
+        return initial_image, best_image_pil, initial_rewards, best_rewards

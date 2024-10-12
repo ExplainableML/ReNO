@@ -2,8 +2,7 @@ from typing import List, Optional, Union
 
 import torch
 from diffusers import PixArtAlphaPipeline
-from diffusers.pipelines.pixart_alpha.pipeline_pixart_alpha import \
-    retrieve_timesteps
+from diffusers.pipelines.pixart_alpha.pipeline_pixart_alpha import retrieve_timesteps
 
 
 def freeze_params(params):
