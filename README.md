@@ -2,7 +2,7 @@
 
 __Authors__: Luca Eyring*, Shyamgopal Karthik*, Karsten Roth, Alexey Dosovitskiy, Zeynep Akata
 
-[![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2406.04312v1)
+[![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2406.04312v1) [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Demo-red)](https://huggingface.co/spaces/fffiloni/ReNO)
 
 ### Abstract
 Text-to-Image (T2I) models have made significant advancements in recent years, but they still struggle to accurately capture intricate details specified in complex compositional prompts. While fine-tuning T2I models with reward objectives has shown promise, it suffers from "reward hacking" and may not generalize well o unseen prompt distributions. In this work, we propose Reward-based Noise Optimization (ReNO), a novel approach that enhances T2I models at inference by optimizing the initial noise based on the signal from one or multiple human preference reward models. Remarkably, solving this optimization problem with gradient ascent for 50 iterations yields impressive results on four different one-step models across two competitive benchmarks, T2I-CompBench and GenEval. Within a computational budget of 20-50 seconds, ReNO-enhanced one-step models consistently surpass the performance of all current open-source Text-to-Image models. Extensive user studies demonstrate that our model is preferred nearly twice as often compared to the popular SDXL model and is on par with the proprietary Stable Diffusion 3 with 8B parameters. Moreover, given the same computational resources, a ReNO-optimized one-step model outperforms widely used open-source models such as SDXL and PixArt-α, highlighting the efficiency and effectiveness of ReNO in enhancing T2I model performance at inference time.
@@ -11,7 +11,7 @@ Text-to-Image (T2I) models have made significant advancements in recent years, b
 
 
 ## Setup
-First, install the necessary dependenices in `environment.yml`. Note that currently HPSv2 does not automatically download the OpenCLIP tokenizer, and you might have to manually download it as described [here](https://github.com/tgxs002/HPSv2/issues/30). If you want to use the Aesthetic predictor, place the [checkpoint](https://github.com/christophschuhmann/improved-aesthetic-predictor/raw/main/ava+logos-l14-linearMSE.pth) in `./ckpts/aesthetic_model.pth`.
+First, install the necessary dependencies in `environment.yml`. Note that currently HPSv2 does not automatically download the OpenCLIP tokenizer, and you might have to manually download it as described [here](https://github.com/tgxs002/HPSv2/issues/30). If you want to use the Aesthetic predictor, place the [checkpoint](https://github.com/christophschuhmann/improved-aesthetic-predictor/raw/main/ava+logos-l14-linearMSE.pth) in `./ckpts/aesthetic_model.pth`.
 
 Additionally, if you want to use [T2I-CompBench](https://github.com/Karine-Huang/T2I-CompBench/tree/main) or [GenEval](https://github.com/djghosh13/geneval/tree/main), you need to clone their respective repositories into the same parent directory as `ReNO`.
 
@@ -63,8 +63,7 @@ For the Parti-Prompts leave one reward out experiments, the leave one out reward
 @article{eyring2024reno,
   title={ReNO: Enhancing One-step Text-to-Image Models through Reward-based Noise Optimization}, 
   author={Luca Eyring and Shyamgopal Karthik and Karsten Roth and Alexey Dosovitskiy and Zeynep Akata},
-  year={2024},
-  eprint={2406.04312},
-  archivePrefix={arXiv},
+  journal={Neural Information Processing Systems (NeurIPS)},
+  year={2024}
 }
 ```
