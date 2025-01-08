@@ -215,9 +215,9 @@ def main(args):
             total_init_reward += initial_reward
             if best_reward < initial_reward:
                 total_improved_samples += 1
-            if i == 0:
+            if index == 0:
                 total_best_rewards = {k: 0.0 for k in best_rewards.keys()}
-                total_init_rewards = {k: 0.0 for k in best_rewards.keys()}
+                total_init_rewards = {k: 0.0 for k in init_rewards.keys()}
             for k in best_rewards.keys():
                 total_best_rewards[k] += best_rewards[k]
                 total_init_rewards[k] += init_rewards[k]
