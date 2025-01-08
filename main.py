@@ -191,6 +191,11 @@ def main(args):
         total_init_reward = 0.0
         total_improved_samples = 0
         for index, sample in enumerate(parti_dataset):
+            # Get new latents and optimizer
+            init_latents = torch.randn(shape, device=device, dtype=dtype)
+            latents = torch.nn.Parameter(init_latents, requires_grad=enable_grad)
+            optimizer = get_optimizer(args.optim, latents, args.lr, args.nesterov)
+            
             os.makedirs(
                 f"{args.save_dir}/{args.task}/{settings}/{index}", exist_ok=True
             )
@@ -221,10 +226,6 @@ def main(args):
             for k in best_rewards.keys():
                 total_best_rewards[k] += best_rewards[k]
                 total_init_rewards[k] += init_rewards[k]
-            # Get new latents and optimizer
-            init_latents = torch.randn(shape, device=device, dtype=dtype)
-            latents = torch.nn.Parameter(init_latents, requires_grad=enable_grad)
-            optimizer = get_optimizer(args.optim, latents, args.lr, args.nesterov)
         improvement_percentage = total_improved_samples / parti_dataset.num_rows
         mean_best_reward = total_best_reward / parti_dataset.num_rows
         mean_init_reward = total_init_reward / parti_dataset.num_rows
