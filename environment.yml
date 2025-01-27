@@ -13,7 +13,7 @@ dependencies:
   - pip:
     - datasets==2.18
     - transformers==4.38.2
-    - diffusers==0.28
+    - diffusers==0.30.0
     - hpsv2==1.2
     - image-reward==1.5
     - open-clip-torch==2.24
