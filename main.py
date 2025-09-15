@@ -272,7 +272,7 @@ def main(args):
             with open(f"{outpath}/metadata.jsonl", "w") as fp:
                 json.dump(metadata, fp)
             best_image.save(f"{outpath}/samples/{args.seed:05}.png")
-            if i == 0:
+            if index == 0:
                 total_best_rewards = {k: 0.0 for k in best_rewards.keys()}
                 total_init_rewards = {k: 0.0 for k in best_rewards.keys()}
             for k in best_rewards.keys():
