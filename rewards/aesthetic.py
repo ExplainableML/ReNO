@@ -30,6 +30,7 @@ class AestheticLoss(BaseRewardLoss):
         )  # load the model you trained previously or the model available in this repo
         self.mlp.load_state_dict(s)
         self.clip_model.eval()
+        self.memsave = memsave
         if memsave:
             import memsave_torch.nn
 
