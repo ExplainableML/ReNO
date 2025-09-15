@@ -49,7 +49,7 @@ In `"t2i-compbench"`, the `prompt` argument determines for which of the six cate
 ```
 python main.py  --task "geneval" --seed 2 --model "sdxl-turbo"
 ```
-Then, the generated images for one prompt will be saved into the same folder such that they can directly be used for evaluation using GenEval. To evaluate the generated images either with [T2I-CompBench](https://github.com/Karine-Huang/T2I-CompBench/tree/main) or [GenEval](https://github.com/djghosh13/geneval/tree/main), please follow the instructions in their respective repositories including the installation of their dependencies. Additionally, the change in rewards will be saved for all experiments.
+The results in the paper are generated with seeds `[0,1,2,3]` for geneval. Then, the generated images for one prompt will be saved into the same folder such that they can directly be used for evaluation using GenEval. To evaluate the generated images either with [T2I-CompBench](https://github.com/Karine-Huang/T2I-CompBench/tree/main) or [GenEval](https://github.com/djghosh13/geneval/tree/main), please follow the instructions in their respective repositories including the installation of their dependencies. Additionally, the change in rewards will be saved for all experiments.
 
 For the Parti-Prompts leave one reward out experiments, the leave one out reward should be disabled by e.g. `-no-enable_imagereward` and additionally we provide the argument `--benchmark_reward`, which determines the reward that will be analyzed and should be set to the left out reward.
 
